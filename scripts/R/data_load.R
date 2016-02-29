@@ -6,103 +6,72 @@
 # 4. Creates new features using NAs (based on NMAR assumptions)
 # 5. Imputes missing NA features for later modelling
 
-library("data.table")
-# library("mice")
-# library("VIM")
-library("Amelia")
-# library("caret")
-library("corrgram")
-# library("multicore")
-
 # Clear objects from Memory
 rm(list=ls())
 # Clear Console:
 cat("\014")
+
+library("data.table")
+# library("mice")
+# library("VIM")
+library("Amelia")
+library("caret")
+library("corrgram")
+# library("multicore")
+
 
 # tim : Need to change directory 
 setwd("/Users/tim/Dropbox/projects/kaggle/2016_04_bnp_paribas/scripts/R")
 
 # Read the training and the test data in and print summary
 # system.time(claims.data.read.csv <- read.csv("../../data/train.csv")) # Takes 23.3s
-system.time(claims.data <- fread("../../data/train.csv", header = T, sep = ",", stringsAsFactors = TRUE)) # Wow 1.2s !!
-system.time(claims.sub  <- fread("../../data/test.csv", header = T, sep = ",", stringsAsFactors = TRUE)) # Wow 1.2s !!
-# all.equal(claims.data.read.csv, claims.data.fread)
+claims.data <- fread("../../data/train.csv", header = T, sep = ",", stringsAsFactors = TRUE)
+claims.sub  <- fread("../../data/test.csv", header = T, sep = ",", stringsAsFactors = TRUE)
 
+# Combine all the claims in one big dataframe. The target value will be NA for the 
+# submission dataset. Save the target in another vector
+claims.all <- rbind(claims.data, claims.sub, fill = TRUE)
+claims.all.target <- claims.all$target
+claims.all$target <- NULL
+
+# note: v22 has 18211 levels !! Is this really a factor ?!
 
 # Create some metadata on which columns are ordinal 
-cols.ord   <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v38', 'v47', 'v52', 'v56', 'v62', 'v66', 'v71', 'v72', 'v74', 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
-amelia.ord <- c('v3', 'v22', 'v24', 'v30', 'v31',        'v47', 'v52', 'v56',        'v66', 'v71',        'v74', 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
+# Ordinal have some sense of ordering. Factors are just categories
+cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71', 'v74', 
+                 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
+cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 
 
-col.names <- sapply(claims.data, names)
-col.types <- sapply(claims.data, class)
-
-
-# First of all remove all rows with NA
-claims.data.complete <- claims.data[complete.cases(claims.data) == TRUE]
-
-
-claims.data.numeric <- claims.data.complete
-
-
-# Hack to get rid of factors too
-claims.data.numeric$v3 <- NULL
-claims.data.numeric$v22 <- NULL
-claims.data.numeric$v24 <- NULL
-claims.data.numeric$v30 <- NULL
-claims.data.numeric$v31 <- NULL
-claims.data.numeric$v47 <- NULL
-claims.data.numeric$v52 <- NULL
-claims.data.numeric$v56 <- NULL
-claims.data.numeric$v66 <- NULL
-claims.data.numeric$v71 <- NULL
-claims.data.numeric$v74 <- NULL
-claims.data.numeric$v74 <- NULL
-claims.data.numeric$v75 <- NULL
-claims.data.numeric$v79 <- NULL
-claims.data.numeric$v91 <- NULL
-claims.data.numeric$v107 <- NULL
-claims.data.numeric$v110 <- NULL
-claims.data.numeric$v112 <- NULL
-claims.data.numeric$v113 <- NULL
-claims.data.numeric$v125 <- NULL
-
-
-correlation <- cor(claims.data.numeric)
-summary(correlation)
-
-# corrgram(correlation)
-
+# First of all remove all rows with NA and factor columns. 
+# Then check for correlation between remaining numeric columns and remove them.
+claims.all.complete <- claims.all[complete.cases(claims.all) == TRUE]
+claims.all.numeric <- claims.all.complete[,c(cols.factor) := NULL]
+correlation <- cor(claims.all.numeric)
 hc <- findCorrelation(correlation, cutoff = 0.9)
 hc <- sort(hc)
 hc
+claims.all <- claims.all[,c(hc) := NULL]
 
-reduced.data <- claims.data[,c(hc) := NULL]
-claims.data <- reduced.data
+# Create some utility vectors based on de-correlated data.
+col.names <- sapply(claims.all, names)
+col.types <- sapply(claims.all, class)
+col.factors <- names(col.types[col.types == 'factor'])
 
-# Some variables don't change in the dataset !
-# 
-# claims.data[,cols.ord] <- as.factor(claims.data[,cols.ord])
+#Amelia section (Imputed missing values)
+max.cores <- parallel::detectCores()
+claims.all.imp <- amelia(claims.all, m = 1, p2s = 1, parallel = 'multicore', ncpus = max.cores-1,
+                                  ords = c('v3', 'v24', 'v30', 'v31', 'v66', 'v71', 
+                                  'v74', 'v75', 'v79', 'v107', 'v110', 'v112', 'v113', 'v125'))
 
-summary(claims.data)
-str(claims.data)
 
-# Simple (probably bad) approach to NA's. Just drop any line containing them.
-# claims.data.complete <- claims.data.fread[complete.cases(claims.data.fread) == TRUE]
 
-# Remove ID and dependent variable, reduce to just 100 observations
-# claims.data$ID <- NULL
-# claims.data$target <- NULL
-claims.data <- data.frame(claims.data)
-claims.data.small <- claims.data[1:1000,]
-
-#Amelia II section
-claims.data.small.imp <- amelia(claims.data, m = 5, p2s = 1, parallel = 'multicore', ncpus = 4, 
-                                idvars = c('ID', 'target'), 
-                                ords = c('v3', 'v24', 'v30', 'v31', 'v66', 'v71', 'v74', 'v75', 
-                                         'v79', 'v107', 'v110', 'v112', 'v113', 'v125'))
-
-claims.data <- claims.data.small.imp$imputations$imp1
+# Now separate out the submission data, put the target back in training data.
+claims.all <- claims.all.imp$imputations$imp1
+claims.all$target <- claims.all.target
+claims.data <- subset(claims.all, !is.na(target))
+claims.sub <- subset(claims.all, is.na(target))
+claims.sub$target <- NULL
 
 # system.time(imputed.data <- mice(claims.data.small, m=1))
 # MICE section
