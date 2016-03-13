@@ -44,7 +44,7 @@ cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', '
                  'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
 cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 
-str(claims.all)
+# str(claims.all)
 
 # Add extra logical features based on groups of NA columns
 # head(is.na(c( claims.all$v2))
