@@ -9,6 +9,7 @@ source("data_load.R")
 library("caTools")
 library("xgboost")
 
+claims.data.ID <- claims.data$ID
 claims.data$ID <- NULL
 
 # # Only leave in the top 10 features to avoid overfitting
@@ -21,12 +22,17 @@ split = sample.split(claims.data$target, SplitRatio = 0.8)
 claims.train = subset(claims.data, split == TRUE)
 claims.test = subset(claims.data, split == FALSE)
 
-# claims.train.target <- claims.train$target
-# claims.test$target <- NULL
+claims.train.target <- claims.train$target
+claims.test.target <- claims.test$target
+claims.train$target <- NULL
+claims.test$target <- NULL
 
-dtrain <- xgb.DMatrix(data = data.matrix(claims.train), label = claims.train$target)
-dtest  <- xgb.DMatrix(data = data.matrix(claims.test), label = claims.test$target)
+dtrain <- xgb.DMatrix(data = data.matrix(claims.train), label = claims.train.target)
+dtest  <- xgb.DMatrix(data = data.matrix(claims.test), label = claims.test.target)
 
+
+
+# Model training
 xgb.watchlist <- list(eval = dtest, train = dtrain)
 
 xgb.params <- list(  objective           = "binary:logistic", 
@@ -40,10 +46,24 @@ xgb.params <- list(  objective           = "binary:logistic",
                      
 )
 
+
+# Model Cross-validation
+xgb.cv.nround <- 100
+xgb.cv.nfold <- 5
+
+xgb.cv.model = xgb.cv( params  = xgb.params            ,
+                       data    = dtrain                ,
+                       label   = claims.train.target   ,
+                       nfold   = xgb.cv.nfold          ,
+                       nrounds = xgb.cv.nround
+)
+
+
+
 xgb.model <- xgb.train(
   params              = xgb.params, 
   data                = dtrain, 
-  nrounds             = 1000, # change to 1500 to run outside of kaggle
+  nrounds             = 1500, # change to 1500 to run outside of kaggle
   verbose             = 1,  #0 if full training set and no watchlist provided
   watchlist           = xgb.watchlist,
   print.every.n       = 100,
