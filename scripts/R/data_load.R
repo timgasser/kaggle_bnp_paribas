@@ -33,6 +33,8 @@ claims.sub  <- fread("../../data/test.csv", header = T, sep = ",", stringsAsFact
 claims.all <- rbind(claims.data, claims.sub, fill = TRUE)
 claims.all.target <- claims.all$target
 claims.all$target <- NULL
+claims.all.ID <- claims.all$ID
+claims.all$ID <- NULL
 
 # note: v22 has 18211 levels !! Is this really a factor ?!
 
@@ -42,33 +44,44 @@ cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', '
                  'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
 cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 
+str(claims.all)
 
-# First of all remove all rows with NA and factor columns. 
-# Then check for correlation between remaining numeric columns and remove them.
-claims.all.complete <- claims.all[complete.cases(claims.all) == TRUE]
-claims.all.numeric <- claims.all.complete[,c(cols.factor) := NULL]
-correlation <- cor(claims.all.numeric)
-hc <- findCorrelation(correlation, cutoff = 0.9)
-hc <- sort(hc)
-hc
-claims.all <- claims.all[,c(hc) := NULL]
-
-# Create some utility vectors based on de-correlated data.
-col.names <- sapply(claims.all, names)
-col.types <- sapply(claims.all, class)
-col.factors <- names(col.types[col.types == 'factor'])
-
-#Amelia section (Imputed missing values)
-max.cores <- parallel::detectCores()
-claims.all.imp <- amelia(claims.all, m = 1, p2s = 1, parallel = 'multicore', ncpus = max.cores-1,
-                                  ords = c('v3', 'v24', 'v30', 'v31', 'v66', 'v71', 
-                                  'v74', 'v75', 'v79', 'v107', 'v110', 'v112', 'v113', 'v125'))
+# Add extra logical features based on groups of NA columns
+# head(is.na(c( claims.all$v2))
+# claims.all$v1v2NA <- is.na( claims.all[,c("v1", "v2")])
+# table(claims.all$v1v2NA)
 
 
+# Replace missing values with -1
+claims.all[is.na(claims.all)] <- -1
 
-# Now separate out the submission data, put the target back in training data.
-claims.all <- claims.all.imp$imputations$imp1
+# # First of all remove all rows with NA and factor columns. 
+# # Then check for correlation between remaining numeric columns and remove them.
+# claims.all.complete <- claims.all[complete.cases(claims.all) == TRUE]
+# claims.all.numeric <- claims.all.complete[,c(cols.factor) := NULL]
+# correlation <- cor(claims.all.numeric)
+# hc <- findCorrelation(correlation, cutoff = 0.9)
+# hc <- sort(hc)
+# hc
+# claims.all <- claims.all[,c(hc) := NULL]
+# 
+# # Create some utility vectors based on de-correlated data.
+# col.names <- sapply(claims.all, names)
+# col.types <- sapply(claims.all, class)
+# col.factors <- names(col.types[col.types == 'factor'])
+# 
+# #Amelia section (Imputed missing values)
+# max.cores <- parallel::detectCores()
+# claims.all.imp <- amelia(claims.all, m = 1, p2s = 1, parallel = 'multicore', ncpus = max.cores-1,
+#                                   ords = c('v3', 'v24', 'v30', 'v31', 'v66', 'v71', 
+#                                   'v74', 'v75', 'v79', 'v107', 'v110', 'v112', 'v113', 'v125'))
+# 
+# 
+# 
+# # Now separate out the submission data, put the target back in training data.
+# claims.all <- claims.all.imp$imputations$imp1
 claims.all$target <- claims.all.target
+claims.all$ID <- claims.all.ID
 claims.data <- subset(claims.all, !is.na(target))
 claims.sub <- subset(claims.all, is.na(target))
 claims.sub$target <- NULL
