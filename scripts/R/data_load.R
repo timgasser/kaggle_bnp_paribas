@@ -14,7 +14,7 @@ cat("\014")
 library("data.table")
 # library("mice")
 # library("VIM")
-library("Amelia")
+# library("Amelia")
 library("caret")
 library("corrgram")
 # library("multicore")
@@ -56,26 +56,28 @@ cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 
 # Process the dataframe columns
 claims.all$rowNaSums <- rowSums(is.na(claims.all))
+
+
 # Add NA entries where the factors are just blank
-claims.all$v3[claims.all$v3 == ""] <- NA
-claims.all$v22[claims.all$v22 == ""] <- NA
-claims.all$v24[claims.all$v24 == ""] <- NA
-claims.all$v30[claims.all$v30 == ""] <- NA
-claims.all$v31[claims.all$v31 == ""] <- NA
-claims.all$v47[claims.all$v47 == ""] <- NA
-claims.all$v52[claims.all$v52 == ""] <- NA
-claims.all$v56[claims.all$v56 == ""] <- NA
-claims.all$v66[claims.all$v66 == ""] <- NA
-claims.all$v71[claims.all$v71 == ""] <- NA
-claims.all$v74[claims.all$v74 == ""] <- NA
-claims.all$v75[claims.all$v75 == ""] <- NA
-claims.all$v79[claims.all$v79 == ""] <- NA
-claims.all$v91[claims.all$v91 == ""] <- NA
-claims.all$v107[claims.all$v107 == ""] <- NA
-claims.all$v110[claims.all$v110 == ""] <- NA
-claims.all$v112[claims.all$v112 == ""] <- NA
-claims.all$v113[claims.all$v113 == ""] <- NA
-claims.all$v125[claims.all$v125 == ""] <- NA
+# claims.all$v3[claims.all$v3 == ""] <- NA
+# claims.all$v22[claims.all$v22 == ""] <- NA
+# claims.all$v24[claims.all$v24 == ""] <- NA
+# claims.all$v30[claims.all$v30 == ""] <- NA
+# claims.all$v31[claims.all$v31 == ""] <- NA
+# claims.all$v47[claims.all$v47 == ""] <- NA
+# claims.all$v52[claims.all$v52 == ""] <- NA
+# claims.all$v56[claims.all$v56 == ""] <- NA
+# claims.all$v66[claims.all$v66 == ""] <- NA
+# claims.all$v71[claims.all$v71 == ""] <- NA
+# claims.all$v74[claims.all$v74 == ""] <- NA
+# claims.all$v75[claims.all$v75 == ""] <- NA
+# claims.all$v79[claims.all$v79 == ""] <- NA
+# claims.all$v91[claims.all$v91 == ""] <- NA
+# claims.all$v107[claims.all$v107 == ""] <- NA
+# claims.all$v110[claims.all$v110 == ""] <- NA
+# claims.all$v112[claims.all$v112 == ""] <- NA
+# claims.all$v113[claims.all$v113 == ""] <- NA
+# claims.all$v125[claims.all$v125 == ""] <- NA
 
 
 # Convert to a matrix, and generate more NA information
@@ -140,19 +142,20 @@ claims.all$v130v131NaSum  <- rowSums(claims.all.na.matrix[,130:131])
 claims.all$v130v131Na     <- rowSums(claims.all.na.matrix[,130:131]) == 2
 
 
-# binarize the categorical values
-
-claims.all$v3 <- model.matrix(~v3-1, claims.all)
+# binarize the categorical values (?)
+# 
+# v3Bin <- model.matrix(~v3-1, claims.all)
+# v91Bin <- model.matrix(~v91-1, claims.all)
 
 # 
 # 
 # 
 # # Replace missing values with -1
-# claims.all[is.na(claims.all)] <- -1
+claims.all[is.na(claims.all)] <- -1
 
 
-# # # First of all remove all rows with NA and factor columns. 
-# # # Then check for correlation between remaining numeric columns and remove them.
+# # First of all remove all rows with NA and factor columns. 
+# # Then check for correlation between remaining numeric columns and remove them.
 # claims.all.complete <- claims.all[complete.cases(claims.all) == TRUE]
 # claims.all.numeric <- claims.all.complete[,c(cols.factor) := NULL]
 # correlation <- cor(claims.all.numeric)
@@ -160,7 +163,7 @@ claims.all$v3 <- model.matrix(~v3-1, claims.all)
 # hc <- sort(hc)
 # hc
 # claims.all <- claims.all[,c(hc) := NULL]
-# 
+
 # # Create some utility vectors based on de-correlated data.
 # col.names <- sapply(claims.all, names)
 # col.types <- sapply(claims.all, class)
