@@ -40,8 +40,8 @@ claims.data.matrix  <- xgb.DMatrix(data = data.matrix(claims.data), label = clai
 
 ###############################################################################
 # Model Cross-validation
-xgb.cv.nround <- 500
-xgb.cv.nfold <- 3
+xgb.cv.nround <- 1000
+xgb.cv.nfold <- 5
 
 etas <- c(0.01, 0.05, 0.1)
 max_depths <- c(6, 8, 10)
@@ -80,6 +80,7 @@ for (eta in etas) {
                                     nrounds = xgb.cv.nround+1       ,
                                     verbose = TRUE                  ,
                                     print.every.n = xgb.cv.nround/5 ,
+                                    # early.stop.round = 100            ,
                                     maximize = FALSE                ,
                                     nthread = 8
             )
@@ -136,6 +137,7 @@ for (model in 1:xgb.eval.models) {
                            nrounds = xgb.eval.nround+1       ,
                            verbose = TRUE                  ,
                            print.every.n = xgb.eval.nround/10 ,
+                           # early.stop.round = 100            ,
                            maximize = FALSE                ,
                            nthread = 8
   )

@@ -8,7 +8,7 @@ library(xgboost)
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
-setwd("/Users/tim/Dropbox/projects/kaggle/2016_04_bnp_paribas/scripts/R")
+setwd("/Users/tim/Dropbox/projects/kaggle/kaggle_bnp_paribas/scripts/R")
 # Clear objects from Memory
 rm(list=ls())
 # Clear Console:
@@ -40,6 +40,40 @@ for (i in f) {
 train <- ttrain[1:nrow(train), ]
 test <- ttrain[(nrow(train)+1):nrow(ttrain), ]
 
+param0 <- list(
+  # general , non specific params - just guessing
+  "objective"  = "binary:logistic"
+  , "eval_metric" = "logloss"
+  , "eta" = 0.01
+  , "subsample" = 0.8
+  , "colsample_bytree" = 0.8
+  , "min_child_weight" = 1
+  , "max_depth" = 10
+)
+
+
+###############################################################################
+# New section - check the local CV scores for this test.
+xgb.cv.nfold <- 5
+xgb.cv.nround <- 2000
+
+xgtrain <- xgb.DMatrix(as.matrix(train), label = y)
+
+xgb.cv.output <- xgb.cv( params  = param0                ,
+                         data    = xgtrain               ,
+                         # label   = claims.data.target    ,
+                         nfold   = xgb.cv.nfold          ,
+                         nrounds = xgb.cv.nround+1       ,
+                         verbose = TRUE                  ,
+                         print.every.n = xgb.cv.nround/5 ,
+                         # early.stop.round = 100            ,
+                         maximize = FALSE                ,
+                         nthread = 8
+)
+
+###############################################################################
+
+
 doTest <- function(y, train, test, param0, iter) {
   n<- nrow(train)
   xgtrain <- xgb.DMatrix(as.matrix(train), label = y)
@@ -59,16 +93,6 @@ doTest <- function(y, train, test, param0, iter) {
   p
 }
 
-param0 <- list(
-  # general , non specific params - just guessing
-  "objective"  = "binary:logistic"
-  , "eval_metric" = "logloss"
-  , "eta" = 0.01
-  , "subsample" = 0.8
-  , "colsample_bytree" = 0.8
-  , "min_child_weight" = 1
-  , "max_depth" = 10
-)
 
 # total analysis
 submission <- read.table("../../data/sample_submission.csv", header=TRUE, sep=',')
