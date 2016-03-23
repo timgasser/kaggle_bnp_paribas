@@ -1,7 +1,7 @@
 # Read in CSV files from the data directory
 
 # tim : Need to change directory 
-setwd("/Users/tim/Dropbox/projects/kaggle/2016_04_bnp_paribas/scripts/R")
+setwd("/Users/tim/Dropbox/projects/kaggle/kaggle_bnp_paribas/scripts/R")
 
 source("data_load.R")
 
@@ -40,14 +40,22 @@ claims.data.matrix  <- xgb.DMatrix(data = data.matrix(claims.data), label = clai
 
 ###############################################################################
 # Model Cross-validation
-xgb.cv.nround <- 1000
-xgb.cv.nfold <- 5
+set.seed(2016)
+xgb.cv.nround <- 1500
+xgb.cv.nfold <- 3
 
 etas <- c(0.01, 0.05, 0.1)
 max_depths <- c(6, 8, 10)
 min_child_weights <- c(0.5, 1)
 subsamples <- c(0.4, 0.8)
 colsample_bytrees <- c(0.4, 0.8)
+
+# # These are the reference values from the Kaggle script
+# etas <- c(0.01)
+# max_depths <- c(10)
+# min_child_weights <- c(1)
+# subsamples <- c(0.8)
+# colsample_bytrees <- c(0.8)
 
 eta_vals <- vector()
 max_depth_vals <- vector()
@@ -68,7 +76,7 @@ for (eta in etas) {
                                  booster             = "gbtree",
                                  eval_metric         = "logloss",
                                  eta                 = eta, 
-                                 max_depth           = max_depths,
+                                 max_depth           = max_depth,
                                  subsample           = subsample,
                                  colsample_bytree    = colsample_bytree,
                                  min_child_weight    = min_child_weight)
@@ -79,8 +87,8 @@ for (eta in etas) {
                                     nfold   = xgb.cv.nfold          ,
                                     nrounds = xgb.cv.nround+1       ,
                                     verbose = TRUE                  ,
-                                    print.every.n = xgb.cv.nround/5 ,
-                                    # early.stop.round = 100            ,
+                                    print.every.n = 100             ,
+                                    early.stop.round = 100          ,
                                     maximize = FALSE                ,
                                     nthread = 8
             )
@@ -95,7 +103,7 @@ for (eta in etas) {
             train_results <- c(train_results, xgb.cv.output$train.logloss.mean[length(xgb.cv.output$train.logloss.mean)])
             test_results <- c(test_results, xgb.cv.output$test.logloss.mean[length(xgb.cv.output$test.logloss.mean)])
             
-            rm(xgb.cv.output)
+            # rm(xgb.cv.output)
             gc()
         }
       }

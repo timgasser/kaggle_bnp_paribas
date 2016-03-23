@@ -54,8 +54,8 @@ cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 # Process the NAs and generate new features
 
 
-# Process the dataframe columns
-claims.all$rowNaSums <- rowSums(is.na(claims.all))
+# # Process the dataframe columns
+# claims.all$rowNaSums <- rowSums(is.na(claims.all))
 
 
 # Add NA entries where the factors are just blank
@@ -79,10 +79,10 @@ claims.all$rowNaSums <- rowSums(is.na(claims.all))
 # claims.all$v113[claims.all$v113 == ""] <- NA
 # claims.all$v125[claims.all$v125 == ""] <- NA
 
-
-# Convert to a matrix, and generate more NA information
-claims.all.na <- is.na(claims.all)
-claims.all.na.matrix <- as.matrix(claims.all.na)
+# 
+# # Convert to a matrix, and generate more NA information
+# claims.all.na <- is.na(claims.all)
+# claims.all.na.matrix <- as.matrix(claims.all.na)
 
 # Parse the NA information into new columns
 # 
@@ -152,12 +152,12 @@ claims.all.na.matrix <- as.matrix(claims.all.na)
 # 
 # # Replace missing values with -1
 claims.all[is.na(claims.all)] <- -1
-
-top40Vars <- c("v50","v12","v21","v40","v114","v22","v34","v14","v56","v10",
-               "v125","v66","v113","v52","v112","v79","v47","v6","v120","v24",
-               "v28","v69","v88","v127","v90","v99","v1","v126","v82","v57",
-               "v27","v91","v115","v39","v98","v107","v9","v36", "v53","v16")
-claims.all <- claims.all[, top40Vars, with = FALSE]
+# 
+# top40Vars <- c("v50","v12","v21","v40","v114","v22","v34","v14","v56","v10",
+#                "v125","v66","v113","v52","v112","v79","v47","v6","v120","v24",
+#                "v28","v69","v88","v127","v90","v99","v1","v126","v82","v57",
+#                "v27","v91","v115","v39","v98","v107","v9","v36", "v53","v16")
+# claims.all <- claims.all[, top40Vars, with = FALSE]
 
 
 # # First of all remove all rows with NA and factor columns. 

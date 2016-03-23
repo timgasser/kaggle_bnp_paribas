@@ -54,8 +54,9 @@ param0 <- list(
 
 ###############################################################################
 # New section - check the local CV scores for this test.
-xgb.cv.nfold <- 5
-xgb.cv.nround <- 2000
+set.seed(2016)
+xgb.cv.nfold <- 3
+xgb.cv.nround <- 1500
 
 xgtrain <- xgb.DMatrix(as.matrix(train), label = y)
 
@@ -65,7 +66,7 @@ xgb.cv.output <- xgb.cv( params  = param0                ,
                          nfold   = xgb.cv.nfold          ,
                          nrounds = xgb.cv.nround+1       ,
                          verbose = TRUE                  ,
-                         print.every.n = xgb.cv.nround/5 ,
+                         print.every.n = 100 ,
                          # early.stop.round = 100            ,
                          maximize = FALSE                ,
                          nthread = 8
