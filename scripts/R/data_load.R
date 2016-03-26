@@ -32,59 +32,56 @@ claims.sub  <- fread("../../data/test.csv", header = T, sep = ",", stringsAsFact
 # submission dataset. Save the target in another vector
 claims.all <- rbind(claims.data, claims.sub, fill = TRUE)
 claims.all.target <- claims.all$target
-claims.all$target <- NULL
+claims.all[,target := NULL]
 claims.all.ID <- claims.all$ID
-claims.all$ID <- NULL
+claims.all[,ID := NULL]
 
-# note: v22 has 18211 levels !! Is this really a factor ?!
 
+###############################################################################
+# Drop useless and tentative columns from Boruta run
+
+claims.all[,v3   := NULL] 
+claims.all[,v22  := NULL] 
+claims.all[,v52  := NULL] 
+claims.all[,v91  := NULL] 
+claims.all[,v107 := NULL] 
+
+
+###############################################################################
 # Create some metadata on which columns are ordinal 
 # Ordinal have some sense of ordering. Factors are just categories
-cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71', 'v74', 
-                 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
-cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 
-# str(claims.all)
-
-# Add extra logical features based on groups of NA columns
-# head(is.na(c( claims.all$v2))
-# claims.all$v1v2NA <- is.na( claims.all[,c("v1", "v2")])
-# table(claims.all$v1v2NA)
-
-# Process the NAs and generate new features
-
-
-# # Process the dataframe columns
-# claims.all$rowNaSums <- rowSums(is.na(claims.all))
-
-
-# Add NA entries where the factors are just blank
-# claims.all$v3[claims.all$v3 == ""] <- NA
-# claims.all$v22[claims.all$v22 == ""] <- NA
-# claims.all$v24[claims.all$v24 == ""] <- NA
-# claims.all$v30[claims.all$v30 == ""] <- NA
-# claims.all$v31[claims.all$v31 == ""] <- NA
-# claims.all$v47[claims.all$v47 == ""] <- NA
-# claims.all$v52[claims.all$v52 == ""] <- NA
-# claims.all$v56[claims.all$v56 == ""] <- NA
-# claims.all$v66[claims.all$v66 == ""] <- NA
-# claims.all$v71[claims.all$v71 == ""] <- NA
-# claims.all$v74[claims.all$v74 == ""] <- NA
-# claims.all$v75[claims.all$v75 == ""] <- NA
-# claims.all$v79[claims.all$v79 == ""] <- NA
-# claims.all$v91[claims.all$v91 == ""] <- NA
-# claims.all$v107[claims.all$v107 == ""] <- NA
-# claims.all$v110[claims.all$v110 == ""] <- NA
-# claims.all$v112[claims.all$v112 == ""] <- NA
-# claims.all$v113[claims.all$v113 == ""] <- NA
-# claims.all$v125[claims.all$v125 == ""] <- NA
-
+# cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71', 'v74', 
+#                  'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
+# cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 # 
-# # Convert to a matrix, and generate more NA information
+# # Convert ordinal columns from ints
+# claims.all$v38  <- factor(claims.all$v38, ordered = TRUE)
+# claims.all$v62  <- factor(claims.all$v62, ordered = TRUE)
+# claims.all$v72  <- factor(claims.all$v72, ordered = TRUE)
+# claims.all$v129 <- factor(claims.all$v129, ordered = TRUE)
+# 
+# # Binarize the factors
+# claims.all <- cbind(claims.all, model.matrix(~v24  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v30  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v31  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v47  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v56  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v66  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v71  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v74  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v75  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v79  -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v110 -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v112 -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v113 -1, claims.all)[,-1])
+# claims.all <- cbind(claims.all, model.matrix(~v125 -1, claims.all)[,-1])
+
+###############################################################################
+# Create a matrix of all NA values, use this to pick out blocks of NAs
+
 # claims.all.na <- is.na(claims.all)
 # claims.all.na.matrix <- as.matrix(claims.all.na)
-
-# Parse the NA information into new columns
 # 
 # claims.all$v1v2NaSum      <- rowSums(claims.all.na.matrix[,1:2])
 # claims.all$v1v2Na         <- rowSums(claims.all.na.matrix[,1:2]) == 2
@@ -142,22 +139,15 @@ cols.ord    <- c('v38', 'v62', 'v72', 'v129')
 # claims.all$v130v131Na     <- rowSums(claims.all.na.matrix[,130:131]) == 2
 
 
-# binarize the categorical values (?)
-# 
-# v3Bin <- model.matrix(~v3-1, claims.all)
-# v91Bin <- model.matrix(~v91-1, claims.all)
 
-# 
-# 
-# 
-# # Replace missing values with -1
+###############################################################################
+# Replacing missing values - what to try?
+# Amelia imputation
+# Replace with -1
+# Replace with the median
+
 claims.all[is.na(claims.all)] <- -1
-# 
-# top40Vars <- c("v50","v12","v21","v40","v114","v22","v34","v14","v56","v10",
-#                "v125","v66","v113","v52","v112","v79","v47","v6","v120","v24",
-#                "v28","v69","v88","v127","v90","v99","v1","v126","v82","v57",
-#                "v27","v91","v115","v39","v98","v107","v9","v36", "v53","v16")
-# claims.all <- claims.all[, top40Vars, with = FALSE]
+
 
 
 # # First of all remove all rows with NA and factor columns. 

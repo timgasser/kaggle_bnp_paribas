@@ -44,18 +44,18 @@ set.seed(2016)
 xgb.cv.nround <- 1500
 xgb.cv.nfold <- 3
 
-etas <- c(0.01, 0.05, 0.1)
-max_depths <- c(6, 8, 10)
-min_child_weights <- c(0.5, 1)
-subsamples <- c(0.4, 0.8)
-colsample_bytrees <- c(0.4, 0.8)
+# etas <- c(0.01, 0.05, 0.1)
+# max_depths <- c(6, 8, 10)
+# min_child_weights <- c(0.5, 1)
+# subsamples <- c(0.4, 0.8)
+# colsample_bytrees <- c(0.4, 0.8)
 
 # # These are the reference values from the Kaggle script
-# etas <- c(0.01)
-# max_depths <- c(10)
-# min_child_weights <- c(1)
-# subsamples <- c(0.8)
-# colsample_bytrees <- c(0.8)
+etas <- c(0.01)
+max_depths <- c(10)
+min_child_weights <- c(1)
+subsamples <- c(0.8)
+colsample_bytrees <- c(0.8)
 
 eta_vals <- vector()
 max_depth_vals <- vector()
@@ -89,8 +89,7 @@ for (eta in etas) {
                                     verbose = TRUE                  ,
                                     print.every.n = 100             ,
                                     early.stop.round = 100          ,
-                                    maximize = FALSE                ,
-                                    nthread = 8
+                                    maximize = FALSE                
             )
             
             # Add a dataframe 
@@ -104,7 +103,7 @@ for (eta in etas) {
             test_results <- c(test_results, xgb.cv.output$test.logloss.mean[length(xgb.cv.output$test.logloss.mean)])
             
             # rm(xgb.cv.output)
-            gc()
+            # gc()
         }
       }
     }

@@ -148,5 +148,64 @@ All features added, categorical / ordinals converted to numeric
 [1400]	train-logloss:0.266898+0.000654	test-logloss:0.464250+0.002603
 [1500]	train-logloss:0.259344+0.001110	test-logloss:0.464676+0.002703
 
-# My baseline xgboost (top 40 features)
+# XGBoost parameters
+
+eta = 0.01
+max_depth_vals = 10
+min_child = 0.5
+subsample_vals = 0.8
+colsample_bytree_vals = 0.4
+
+
+
+# XGBoost hyperparameter search with all features
+
+"","eta_vals","max_depth_vals","min_child_weight_vals","subsample_vals","colsample_bytree_vals","train_results","test_results"
+"11",0.01,8,0.5,0.8,0.4,0.344197,0.462839
+"12",0.01,8,0.5,0.8,0.8,0.344962,0.463587
+"15",0.01,8,1,0.8,0.4,0.348377,0.463944
+"8",0.01,6,1,0.8,0.8,0.410083,0.465193
+"4",0.01,6,0.5,0.8,0.8,0.408822,0.465623
+"14",0.01,8,1,0.4,0.8,0.356972,0.465892
+"7",0.01,6,1,0.8,0.4,0.41382,0.466183
+"10",0.01,8,0.5,0.4,0.8,0.358843,0.466212
+"3",0.01,6,0.5,0.8,0.4,0.412843,0.466249
+"9",0.01,8,0.5,0.4,0.4,0.356586,0.466354
+"13",0.01,8,1,0.4,0.4,0.359846,0.466748
+"2",0.01,6,0.5,0.4,0.8,0.409911,0.467302
+"6",0.01,6,1,0.4,0.8,0.411639,0.467564
+"1",0.01,6,0.5,0.4,0.4,0.41491,0.468227
+"5",0.01,6,1,0.4,0.4,0.416509,0.468325
+
+
+# Boruta results
+Boruta performed 100 iterations in 1.23696 days.
+ 123 attributes confirmed important: v1, v10, v100, v101, v102 and 118 more.
+ 5 attributes confirmed unimportant: v107, v22, v3, v52, v91.
+ 3 tentative attributes left: v125, v71, v75.
+ 
+ 
+ 
+# Feature Engineering results
+
+Spot check with an xgboost with the following settings
+
+set.seed(2016)
+xgb.cv.nround <- 1500
+xgb.cv.nfold <- 3
+
+etas <- c(0.01)
+max_depths <- c(10)
+min_child_weights <- c(1)
+subsamples <- c(0.8)
+colsample_bytrees <- c(0.8)
+
+* Basic feature set. Drop v3, 22, 52, 91, 107. Replace NA with -1.
+
+
+
+
+ 
+ 
+
 
