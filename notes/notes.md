@@ -191,7 +191,7 @@ Boruta performed 100 iterations in 1.23696 days.
 Spot check with an xgboost with the following settings
 
 set.seed(2016)
-xgb.cv.nround <- 1500
+xgb.cv.nround <- 500
 xgb.cv.nfold <- 3
 
 etas <- c(0.01)
@@ -202,6 +202,25 @@ colsample_bytrees <- c(0.8)
 
 * Basic feature set. Drop v3, 22, 52, 91, 107. Replace NA with -1.
 
+[500]	train-logloss:0.357706+0.000461	test-logloss:0.464808+0.001919
+
+* As above, plus binarized factors
+
+[0]	train-logloss:0.688968+0.000016	test-logloss:0.689351+0.000020
+[100]	train-logloss:0.484838+0.001102	test-logloss:0.514337+0.000493
+[200]	train-logloss:0.422621+0.000607	test-logloss:0.476777+0.000964
+[300]	train-logloss:0.393905+0.000478	test-logloss:0.467513+0.001349
+[400]	train-logloss:0.376651+0.000631	test-logloss:0.464690+0.001535
+[500]	train-logloss:0.364300+0.000537	test-logloss:0.463428+0.001721
+
+* As above, with NA-based features (counts and true/negative)
+
+[0]	train-logloss:0.689026+0.000103	test-logloss:0.689382+0.000048
+[100]	train-logloss:0.484382+0.000342	test-logloss:0.514159+0.000866
+[200]	train-logloss:0.422334+0.000382	test-logloss:0.476715+0.001315
+[300]	train-logloss:0.393712+0.000366	test-logloss:0.467487+0.001572
+[400]	train-logloss:0.376469+0.000675	test-logloss:0.464644+0.001784
+[500]	train-logloss:0.364108+0.000657	test-logloss:0.463398+0.001895
 
 
 

@@ -41,7 +41,7 @@ claims.data.matrix  <- xgb.DMatrix(data = data.matrix(claims.data), label = clai
 ###############################################################################
 # Model Cross-validation
 set.seed(2016)
-xgb.cv.nround <- 1500
+xgb.cv.nround <- 500
 xgb.cv.nfold <- 3
 
 # etas <- c(0.01, 0.05, 0.1)
