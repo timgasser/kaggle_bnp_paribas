@@ -15,6 +15,7 @@ library("data.table")
 # library("mice")
 # library("VIM")
 library("Amelia")
+# library("multicore")
 library("caret")
 library("corrgram")
 # library("multicore")
@@ -58,7 +59,6 @@ claims.all$v112 [claims.all$v112  == ""] <- NA
 claims.all$v113 [claims.all$v113  == ""] <- NA
 claims.all$v125 [claims.all$v125  == ""] <- NA
 
-
 ###############################################################################
 # Create a matrix of all NA values, use this to pick out blocks of NAs
 # Need to do this before anything else so the columns line up ..
@@ -96,7 +96,7 @@ claims.all$v57v61Na       <- rowSums(claims.all.na.matrix[,57:61]) == 5
 # claims.all$v62Na          <- claims.all.na.matrix[,62] <- no NAs in this one
 claims.all$v63v65NaSum    <- rowSums(claims.all.na.matrix[,63:65])
 claims.all$v63v65Na       <- rowSums(claims.all.na.matrix[,63:65]) == 3
-claims.all$v66Na          <- claims.all.na.matrix[,66]
+# claims.all$v66Na          <- claims.all.na.matrix[,66] <- no NAs in this one
 claims.all$v67v70NaSum    <- rowSums(claims.all.na.matrix[,67:70])
 claims.all$v67v70Na       <- rowSums(claims.all.na.matrix[,67:70]) == 4
 # claims.all$v71Na          <- claims.all.na.matrix[,71] <- no NAs in this one
@@ -138,10 +138,6 @@ claims.all[,v107 := NULL]
 # Create some metadata on which columns are ordinal 
 # Ordinal have some sense of ordering. Factors are just categories
 
-# cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71', 'v74', 
-#                  'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
-# cols.ord    <- c('v38', 'v62', 'v72', 'v129')
-
 # Convert ordinal columns from ints
 claims.all$v38  <- factor(claims.all$v38, ordered = TRUE)
 claims.all$v62  <- factor(claims.all$v62, ordered = TRUE)
@@ -158,10 +154,10 @@ claims.all <- cbind(claims.all, model.matrix(~v66  -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v71  -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v74  -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v75  -1, claims.all)[,-1])
+claims.all <- cbind(claims.all, model.matrix(~v113 -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v79  -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v110 -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v112 -1, claims.all)[,-1])
-claims.all <- cbind(claims.all, model.matrix(~v113 -1, claims.all)[,-1])
 claims.all <- cbind(claims.all, model.matrix(~v125 -1, claims.all)[,-1])
 
 
@@ -178,9 +174,18 @@ claims.all <- cbind(claims.all, model.matrix(~v125 -1, claims.all)[,-1])
 
 # # First of all remove all rows with NA and factor columns. 
 # # Then check for correlation between remaining numeric columns and remove them.
-# claims.all.complete <- claims.all[complete.cases(claims.all) == TRUE]
-# claims.all.numeric <- claims.all.complete[,c(cols.factor) := NULL]
-# correlation <- cor(claims.all.numeric)
+
+# cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71',
+#                  'v74', 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
+# cols.ord    <- c('v38', 'v62', 'v72', 'v129')
+
+# claims.data.complete <- claims.data[complete.cases(claims.data) == TRUE]
+# claims.data.numeric <- claims.data.complete[,c(cols.factor) := NULL]
+# claims.data.numeric <- claims.data.complete[,c(cols.ord) := NULL]
+# claims.data.numeric[,ID := NULL]
+# claims.data.numeric[,target := NULL]
+# 
+# correlation <- cor(claims.data.numeric)
 # hc <- findCorrelation(correlation, cutoff = 0.9)
 # hc <- sort(hc)
 # hc
@@ -191,12 +196,14 @@ claims.all <- cbind(claims.all, model.matrix(~v125 -1, claims.all)[,-1])
 # col.types <- sapply(claims.all, class)
 # col.factors <- names(col.types[col.types == 'factor'])
 # 
-#Amelia section (Imputed missing values)
-max.cores <- parallel::detectCores()
-claims.all.imp <- amelia(claims.all, m = 1, p2s = 1, parallel = 'multicore', ncpus = max.cores-1,
-                         ords = c("v31", "v38", "v62", "v72", "v129"),
-                         noms = c("v24", "v30", "v47", "v56", "v66", "v71", "v74", "v75", "v79", "v110", "v112", "v113", "v125"))
-
+# #Amelia section (Imputed missing values)
+# max.cores <- parallel::detectCores()
+# claims.all.imp <- amelia(claims.all, m = 5, p2s = 2, parallel = 'multicore', 
+#                            ncpus = max.cores-1,
+#                          ords = c("v31", "v38", "v62", "v72", "v129"),
+#                          noms = c("v24", "v30", "v47", "v56", "v66", "v71", 
+#                                   "v74", "v75", "v79", "v110", "v112", "v113", "v125"))
+# 
 
 # 
 # # Now separate out the submission data, put the target back in training data.

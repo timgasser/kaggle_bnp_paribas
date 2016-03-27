@@ -17,16 +17,6 @@ claims.data$target <- NULL
 claims.sub.ID <- claims.sub$ID
 claims.sub$ID <- NULL
 
-# # Only leave in the top 10 features to avoid overfitting
-# cols.keep <- c("v94", "v18", "v39", "v72", "v76", "v50", "v24", "v15", "v75",
-#                "v14", "v91", "v17")
-# claims.data <- subset(claims.data, select = cols.keep)
-# claims.sub <- subset(claims.sub, select = cols.keep)
-
-# split = sample.split(claims.data$target, SplitRatio = 0.8) 
-# claims.train = subset(claims.data, split == TRUE)
-# claims.test = subset(claims.data, split == FALSE)
-
 # claims.train.target <- claims.train$target
 # claims.test.target <- claims.test$target
 # claims.train$target <- NULL
