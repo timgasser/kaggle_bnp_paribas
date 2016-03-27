@@ -40,31 +40,63 @@ claims.all[,ID := NULL]
 ###############################################################################
 # Add missing values as NA to ordinals and categoricals
 
-claims.all$v3   [claims.all$v3    == ""] <- NA
-claims.all$v24  [claims.all$v24   == ""] <- NA
-claims.all$v30  [claims.all$v30   == ""] <- NA
-claims.all$v31  [claims.all$v31   == ""] <- NA
-claims.all$v47  [claims.all$v47   == ""] <- NA
-claims.all$v52  [claims.all$v52   == ""] <- NA
-claims.all$v56  [claims.all$v56   == ""] <- NA
-claims.all$v66  [claims.all$v66   == ""] <- NA
-claims.all$v71  [claims.all$v71   == ""] <- NA
-claims.all$v74  [claims.all$v74   == ""] <- NA
-claims.all$v75  [claims.all$v75   == ""] <- NA
-claims.all$v79  [claims.all$v79   == ""] <- NA
-claims.all$v91  [claims.all$v91   == ""] <- NA
-claims.all$v107 [claims.all$v107  == ""] <- NA
-claims.all$v110 [claims.all$v110  == ""] <- NA
-claims.all$v112 [claims.all$v112  == ""] <- NA
-claims.all$v113 [claims.all$v113  == ""] <- NA
-claims.all$v125 [claims.all$v125  == ""] <- NA
+# claims.all$v3   [claims.all$v3    == ""] <- NA
+# claims.all$v24  [claims.all$v24   == ""] <- NA
+# claims.all$v30  [claims.all$v30   == ""] <- NA
+# claims.all$v31  [claims.all$v31   == ""] <- NA
+# claims.all$v47  [claims.all$v47   == ""] <- NA
+# claims.all$v52  [claims.all$v52   == ""] <- NA
+# claims.all$v56  [claims.all$v56   == ""] <- NA
+# claims.all$v66  [claims.all$v66   == ""] <- NA
+# claims.all$v71  [claims.all$v71   == ""] <- NA
+# claims.all$v74  [claims.all$v74   == ""] <- NA
+# claims.all$v75  [claims.all$v75   == ""] <- NA
+# claims.all$v79  [claims.all$v79   == ""] <- NA
+# claims.all$v91  [claims.all$v91   == ""] <- NA
+# claims.all$v107 [claims.all$v107  == ""] <- NA
+# claims.all$v110 [claims.all$v110  == ""] <- NA
+# claims.all$v112 [claims.all$v112  == ""] <- NA
+# claims.all$v113 [claims.all$v113  == ""] <- NA
+# claims.all$v125 [claims.all$v125  == ""] <- NA
+
+###############################################################################
+# Create a matrix of all NA values, use this to pick out blocks of NAs
+
+# Save out the NA information for use after imputation
+claims.all.na <- is.na(claims.all)
+claims.all.na.matrix <- as.matrix(claims.all.na)
+
+# Now create imputed datasets
+claims.imp.in = claims.all
+cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71',
+                 'v74', 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
+cols.ord    <- c('v38', 'v62', 'v72', 'v129')
+
+claims.data.complete <- claims.imp.in[complete.cases(claims.imp.in) == TRUE]
+claims.data.numeric <- claims.data.complete[,c(cols.factor) := NULL]
+claims.data.numeric <- claims.data.complete[,c(cols.ord) := NULL]
+
+correlation <- cor(claims.data.numeric)
+hc <- findCorrelation(correlation, cutoff = 0.9)
+hc <- sort(hc)
+hc
+claims.imp.in <- claims.imp.in[,c(hc) := NULL]
+
+#Amelia section (Imputed missing values)
+max.cores <- parallel::detectCores()
+claims.imp.out <- amelia(claims.imp.in, m = 5, p2s = 2, parallel = 'multicore', 
+                           ncpus = max.cores-1,
+                         idvars = c("v31", "v3", "v24", "v30", "v47", "v52", "v56", "v66", "v71", 
+                                  "v74", "v75", "v91", "v107", "v110", "v112", "v113", "v125"))
+
+
+
 
 ###############################################################################
 # Create a matrix of all NA values, use this to pick out blocks of NAs
 # Need to do this before anything else so the columns line up ..
 
-claims.all.na <- is.na(claims.all)
-claims.all.na.matrix <- as.matrix(claims.all.na)
+claims.all <- claims.imp.out$imputations[[2]]
 
 claims.all$v1v2NaSum      <- rowSums(claims.all.na.matrix[,1:2])
 claims.all$v1v2Na         <- rowSums(claims.all.na.matrix[,1:2]) == 2
