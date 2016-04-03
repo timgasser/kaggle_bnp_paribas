@@ -14,10 +14,10 @@ cat("\014")
 library("data.table")
 # library("mice")
 # library("VIM")
-library("Amelia")
+# library("Amelia")
 # library("multicore")
-library("caret")
-library("corrgram")
+# library("caret")
+# library("corrgram")
 # library("multicore")
 
 
@@ -65,38 +65,6 @@ claims.all[,ID := NULL]
 # Save out the NA information for use after imputation
 claims.all.na <- is.na(claims.all)
 claims.all.na.matrix <- as.matrix(claims.all.na)
-
-# Now create imputed datasets
-claims.imp.in = claims.all
-cols.factor <- c('v3', 'v22', 'v24', 'v30', 'v31', 'v47', 'v52', 'v56', 'v66', 'v71',
-                 'v74', 'v75', 'v79', 'v91', 'v107', 'v110', 'v112', 'v113', 'v125')
-cols.ord    <- c('v38', 'v62', 'v72', 'v129')
-
-claims.data.complete <- claims.imp.in[complete.cases(claims.imp.in) == TRUE]
-claims.data.numeric <- claims.data.complete[,c(cols.factor) := NULL]
-claims.data.numeric <- claims.data.complete[,c(cols.ord) := NULL]
-
-correlation <- cor(claims.data.numeric)
-hc <- findCorrelation(correlation, cutoff = 0.9)
-hc <- sort(hc)
-hc
-claims.imp.in <- claims.imp.in[,c(hc) := NULL]
-
-#Amelia section (Imputed missing values)
-max.cores <- parallel::detectCores()
-claims.imp.out <- amelia(claims.imp.in, m = 5, p2s = 2, parallel = 'multicore', 
-                           ncpus = max.cores-1,
-                         idvars = c("v31", "v3", "v24", "v30", "v47", "v52", "v56", "v66", "v71", 
-                                  "v74", "v75", "v91", "v107", "v110", "v112", "v113", "v125"))
-
-
-
-
-###############################################################################
-# Create a matrix of all NA values, use this to pick out blocks of NAs
-# Need to do this before anything else so the columns line up ..
-
-claims.all <- claims.imp.out$imputations[[2]]
 
 claims.all$v1v2NaSum      <- rowSums(claims.all.na.matrix[,1:2])
 claims.all$v1v2Na         <- rowSums(claims.all.na.matrix[,1:2]) == 2
@@ -200,7 +168,7 @@ claims.all <- cbind(claims.all, model.matrix(~v125 -1, claims.all)[,-1])
 # Replace with -1
 # Replace with the median
 
-# claims.all[is.na(claims.all)] <- -1
+claims.all[is.na(claims.all)] <- -1
 
 
 

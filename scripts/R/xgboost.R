@@ -27,6 +27,74 @@ claims.sub$ID <- NULL
 
 claims.data.matrix  <- xgb.DMatrix(data = data.matrix(claims.data), label = claims.data.target)
 
+###############################################################################
+# Spot-check the model (to check feature engineering)
+set.seed(2016)
+xgb.cv.nround <- 500
+xgb.cv.nfold <- 3
+
+# # These are the reference values from the Kaggle script
+etas <- c(0.01)
+max_depths <- c(10)
+min_child_weights <- c(1)
+subsamples <- c(0.8)
+colsample_bytrees <- c(0.8)
+
+eta_vals <- vector()
+max_depth_vals <- vector()
+min_child_weight_vals <- vector()
+subsample_vals <- vector()
+colsample_bytree_vals <- vector()
+
+train_results <- vector()
+test_results <- vector()
+
+for (eta in etas) {
+  for (max_depth in max_depths) {
+    for (min_child_weight in min_child_weights) {
+      for (subsample in subsamples) {
+        for (colsample_bytree in colsample_bytrees) {
+          
+          xgb.params <- list(  objective           = "binary:logistic", 
+                               booster             = "gbtree",
+                               eval_metric         = "logloss",
+                               eta                 = eta, 
+                               max_depth           = max_depth,
+                               subsample           = subsample,
+                               colsample_bytree    = colsample_bytree,
+                               min_child_weight    = min_child_weight)
+          
+          xgb.cv.output <- xgb.cv( params  = xgb.params            ,
+                                   data    = claims.data.matrix    ,
+                                   label   = claims.data.target    ,
+                                   nfold   = xgb.cv.nfold          ,
+                                   nrounds = xgb.cv.nround+1       ,
+                                   verbose = TRUE                  ,
+                                   print.every.n = 100             ,
+                                   early.stop.round = 100          ,
+                                   maximize = FALSE                
+          )
+          
+          # Add a dataframe 
+          eta_vals <- c(eta_vals, eta)
+          max_depth_vals <- c(max_depth_vals, max_depth)
+          min_child_weight_vals <- c(min_child_weight_vals, min_child_weight)
+          subsample_vals <- c(subsample_vals, subsample)
+          colsample_bytree_vals <- c(colsample_bytree_vals, colsample_bytree)
+          
+          train_results <- c(train_results, xgb.cv.output$train.logloss.mean[length(xgb.cv.output$train.logloss.mean)])
+          test_results <- c(test_results, xgb.cv.output$test.logloss.mean[length(xgb.cv.output$test.logloss.mean)])
+          
+          rm(xgb.cv.output)
+          gc()
+        }
+      }
+    }
+  }
+  
+}
+
+
 
 ###############################################################################
 # Model Cross-validation
